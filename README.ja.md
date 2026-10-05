@@ -135,7 +135,7 @@ ponytail なら：
 | `/ponytail-gain` | ベンチマークで測定した効果（コード削減、コスト削減、速度向上）をスコアボードで表示する。 |
 | `/ponytail-help` | 上記コマンドのクイックリファレンス。 |
 
-コマンドには skill に対応したホストが必要だ（Claude Code、Codex、Devin CLI、OpenCode、Gemini、pi、Swival、Hermes Agent、Qoder、Grok Build）。Codex CLI と IDE 拡張では、プラグインの名前空間の下にある skill なので、`$ponytail:ponytail-review` のように呼び出す。[フック](INSTALL.md#cursor)を使う Cursor では `/ponytail` のレベル切り替えだけが使え、普通のメッセージとして入力する。指示だけのアダプター（Cursor のルールファイル、Windsurf、Cline、Copilot、Kiro、Antigravity）は、コマンドなしで常時有効なルールだけを読み込む。
+コマンドには skill に対応したホストが必要だ（Claude Code、Codex、Devin CLI、OpenCode、Gemini、pi、Hermes Agent、Qoder、Grok Build）。Codex CLI と IDE 拡張では、プラグインの名前空間の下にある skill なので、`$ponytail:ponytail-review` のように呼び出す。[フック](INSTALL.md#cursor)を使う Cursor では `/ponytail` のレベル切り替えだけが使え、普通のメッセージとして入力する。指示だけのアダプター（Cursor のルールファイル、Windsurf、Cline、Copilot、Kiro、Antigravity）は、コマンドなしで常時有効なルールだけを読み込む。
 
 <a id="numbers"></a>
 ## 数字

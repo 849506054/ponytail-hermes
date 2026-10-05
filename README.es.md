@@ -135,7 +135,7 @@ Perezoso, no negligente: la validación en los límites de confianza, el manejo 
 | `/ponytail-gain` | Muestra el marcador de impacto medido (menos código, menos coste, más velocidad) del benchmark. |
 | `/ponytail-help` | Referencia rápida de los comandos anteriores. |
 
-Los comandos necesitan un host con soporte de skills (Claude Code, Codex, Devin CLI, OpenCode, Gemini, pi, Swival, Hermes Agent, Qoder, Grok Build). En Codex CLI y en la extensión del IDE son skills dentro del espacio de nombres del plugin; se invocan con `$ponytail:ponytail-review`. Cursor con los [hooks](INSTALL.md#cursor) solo tiene el cambio de nivel con `/ponytail`, escrito como mensaje normal. Los adaptadores de solo instrucciones (el archivo de reglas de Cursor, Windsurf, Cline, Copilot, Kiro, Antigravity) cargan las reglas siempre activas, sin los comandos.
+Los comandos necesitan un host con soporte de skills (Claude Code, Codex, Devin CLI, OpenCode, Gemini, pi, Hermes Agent, Qoder, Grok Build). En Codex CLI y en la extensión del IDE son skills dentro del espacio de nombres del plugin; se invocan con `$ponytail:ponytail-review`. Cursor con los [hooks](INSTALL.md#cursor) solo tiene el cambio de nivel con `/ponytail`, escrito como mensaje normal. Los adaptadores de solo instrucciones (el archivo de reglas de Cursor, Windsurf, Cline, Copilot, Kiro, Antigravity) cargan las reglas siempre activas, sin los comandos.
 
 <a id="numbers"></a>
 ## Números

@@ -18,19 +18,6 @@ npx promptfoo@latest view
 `--env-file ../.env` is required because promptfoo reads `.env` from the current
 directory (`benchmarks/`), not the repo root where the file lives.
 
-### Local models via Ollama
-
-No API key or promptfoo required. Runs against any model served by Ollama:
-
-```bash
-ollama pull llama3.2          # or any other model
-python benchmarks/benchmark-local.py --model llama3.2 --repeat 3
-```
-
-See `benchmarks/results/2026-06-15-llama3.2-local.md` for what to expect: the skill works
-well on instruction-following models (Claude-class) but transfers poorly to small local
-models where the multi-step decision ladder isn't reliably followed.
-
 Tasks: email validator, JS debounce, CSV sum, React countdown, FastAPI rate-limit (see `promptfooconfig.yaml`). Single-shot completions, default temperature.
 
 ## Median results (10 runs, 2026-06-13; cost re-verified at 30 runs, 2026-06-17)
