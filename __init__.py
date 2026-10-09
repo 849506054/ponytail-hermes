@@ -104,7 +104,9 @@ def _fallback_instructions(mode: str) -> str:
         "is not needed, reuse what the codebase has, stdlib or platform, installed "
         "dependency, one readable line, then minimum code. No unrequested abstractions, "
         "wrappers, options or boilerplate. Never cut trust-boundary validation, "
-        "data-loss handling, security, accessibility or anything asked for."
+        "data-loss handling, security, accessibility or anything asked for. "
+        "When the same targeted patch fails 3 times in a row, stop micro-patching "
+        "and rewrite that block in one change."
     )
 
 
