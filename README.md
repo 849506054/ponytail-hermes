@@ -41,7 +41,7 @@
 </p>
 
 <p align="center">
-  <sub><a href="i18n/README.es.md">Español</a> &middot; <a href="i18n/README.ko.md">한국어</a> &middot; <a href="i18n/README.zh-CN.md">简体中文</a> &middot; <a href="i18n/README.ja.md">日本語</a></sub>
+  <sub>Hermes Agent fork: <a href="https://github.com/849506054/ponytail-hermes">849506054/ponytail-hermes</a></sub>
 </p>
 
 ---
@@ -119,35 +119,19 @@ Logic with a branch, a loop, a parser, money or security leaves one small test b
 
 ## The prompt
 
-Ponytail is one prompt: [`skills/ponytail/SKILL.md`](skills/ponytail/SKILL.md). The compact version, for agents that read a rules file, is [`AGENTS.md`](AGENTS.md). Everything else in this repo loads that prompt into different agents.
+Ponytail is one prompt: [`skills/ponytail/SKILL.md`](skills/ponytail/SKILL.md). This fork ships it for Hermes Agent only: the injected prompt, the six skills and the six slash commands, nothing else.
 
 ## Install
 
-**Claude Code**, as two separate prompts:
-
 ```
-/plugin marketplace add DietrichGebert/ponytail
+hermes plugins install 849506054/ponytail-hermes
 ```
-```
-/plugin install ponytail@ponytail
-```
-
-**Codex:**
-
-```bash
-codex plugin marketplace add DietrichGebert/ponytail
-codex plugin add ponytail@ponytail
-```
-
-Then open `/hooks` in Codex, trust its two lifecycle hooks, and start a new thread.
-
-**Any other agent:** copy [`AGENTS.md`](AGENTS.md) into your project, or ask your agent to install [`skills/ponytail/SKILL.md`](skills/ponytail/SKILL.md) as a skill. Step by step for Copilot, Cursor, OpenCode, Gemini and the rest: **[INSTALL.md](INSTALL.md)**.
 
 That was it. He'd be proud. He won't say it.
 
 Active every session, with a handful of commands (see [Commands](#commands)). `/ponytail ultra` exists for when the codebase has wronged you personally. Startup and mode-change text shows the current mode.
 
-Only install ponytail from `DietrichGebert/ponytail` on GitHub or `@dietrichgebert/ponytail` on npm. It never ships `.exe` or `.dll` files; a copy that does is not mine.
+This fork is a Python plugin plus one prompt. It ships no `.exe`, no `.dll` and no npm package.
 
 ## Commands
 
@@ -160,7 +144,7 @@ Only install ponytail from `DietrichGebert/ponytail` on GitHub or `@dietrichgebe
 | `/ponytail-gain` | Show the measured impact scoreboard (less code, less cost, more speed) from the benchmark. |
 | `/ponytail-help` | Quick reference for the commands above. |
 
-Commands need a skill-capable host (Claude Code, Codex, Devin CLI, OpenCode, Gemini, pi, Hermes Agent, Qoder, Grok Build). In Codex CLI and the IDE extension they're skills under the plugin's namespace; invoke with `$ponytail:ponytail-review`. Cursor with the [hooks](INSTALL.md#cursor) gets `/ponytail` level switching only, typed as a plain message. The instruction-only adapters (Cursor's rule file, Windsurf, Cline, Copilot, Kiro, Antigravity) load the always-on ruleset without the commands.
+Commands are registered by the Hermes plugin, and the five command skills ship in this repo's `skills/`, so they can also be invoked as skills.
 
 ## FAQ
 

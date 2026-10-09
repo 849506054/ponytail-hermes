@@ -120,5 +120,15 @@
 - diff 形状：`skills/ponytail/SKILL.md` 7 insertions / 10 deletions（含阶梯重编号）；`__init__.py` 4 insertions / 1 deletion（`_fallback_instructions` 未同步，仅在 SKILL.md 读不到时兜底）。
 - 备份：`/opt/data/backups/ponytail-dedup-20261009/`（SKILL.md + `__init__.py` + 校验脚本）。
 - 生效：SKILL.md 每轮现读 → **已生效**。
-- 未动：`.agents/rules/ponytail.md`、`.clinerules/`、`.github/copilot-instructions.md`、`hooks/*.js`（其它 agent 的分发件，不进 Hermes 注入路径）。
+- 其它 agent 的分发件当时保留 → 当晚随下一节一并移除。
+
+## 非 Hermes 客户端适配件移除（2026-10-09，fork 口径）
+
+- 依据：仓库已定为 `ponytail-hermes`，其它 agent / 客户端的适配面不再需要。
+- 移除（95 个文件）：客户端配置目录 `.agents`、`.claude-plugin`、`.clinerules`、`.codex-plugin`、`.cursor`、`.devin-plugin`、`.grok-plugin`、`.kimi-plugin`、`.kiro`、`.openclaw`、`.opencode`、`.qoder`、`.qoder-plugin`、`.windsurf`；扩展清单 `gemini-extension.json`、`opencode.json`、`pi-extension/`、`plugin.json`；JS hook 层与工具 `hooks/`、`scripts/`、`commands/*.toml`、`package.json`；JS 测试套件 `tests/`；仓库 CI 与 Copilot 说明 `.github/`；客户端安装文档 `INSTALL.md`、`after-install.md`、`docs/`、`i18n/`。
+- 留存：`skills/`（注入文本 + 六个命令 skill）、`__init__.py`、`plugin.yaml`、`benchmarks/`（README 数字的出处）、`examples/`、`assets/`、`README.md`、`AGENTS.md`、`LICENSE`、`LOCAL_PATCHES.md`。
+- README 同步：去掉 i18n 语言链接、客户端安装段与多宿主命令说明，改为单一安装口径 `hermes plugins install 849506054/ponytail-hermes` 与 fork 标识。
+- 内联引用同步：`__init__.py` 里指向 `hooks/ponytail-instructions.js` 的注释改为只引 `#571`。
+- 验证：`verify_ponytail_patches.py` PASS；`inspect_ponytail_injection.py` 逐档体积不变（full 2468 / lite 2523 / ultra 2537）；py_compile OK；`hermes plugins list`（新进程）读到 ponytail **enabled / 5.1.0**，六个命令与四档注册完整。
+- 备份：`/opt/data/backups/ponytail-hermes-20261009-client-adapters.tar.gz`（135 条目；git 历史同样可回溯）。
 
