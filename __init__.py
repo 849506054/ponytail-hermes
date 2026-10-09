@@ -11,6 +11,12 @@ from typing import Any, Callable
 DEFAULT_MODE = "full"
 RUNTIME_MODES = {"off", "lite", "full", "ultra"}
 CONFIG_MODES = RUNTIME_MODES | {"review"}
+DEFAULT_FOOTER = "on"
+FOOTER_MODES = {"on", "off"}
+FOOTER_SENTENCE = (
+    "End your reply with one or two lines: what you skipped or did not check, "
+    "and any risk the user must know."
+)
 SKILL_COMMANDS = {
     "ponytail-review": "Review the current diff or provided target: bugs, security, load, missing tests, speed, and what to cut.",
     "ponytail-audit": "Audit the whole repo: bugs, security, load, missing tests, speed, and what to cut.",
@@ -61,6 +67,38 @@ def _default_mode() -> str:
     except Exception:
         pass
     return DEFAULT_MODE
+
+
+def _normalize_footer(value: Any) -> str | None:
+    if not isinstance(value, str) and not isinstance(value, bool):
+        return None
+    text = str(value).strip().lower()
+    if text in {"off", "0", "false", "no"}:
+        return "off"
+    if text in {"on", "1", "true", "yes"}:
+        return "on"
+    return None
+
+
+def _footer_setting() -> str:
+    """Footer state for the reply: `PONYTAIL_FOOTER` env, then `footer` in config.json."""
+    env_footer = _normalize_footer(os.environ.get("PONYTAIL_FOOTER"))
+    if env_footer:
+        return env_footer
+    try:
+        data = json.loads((_config_dir() / "config.json").read_text(encoding="utf-8-sig"))
+        file_footer = _normalize_footer(data.get("footer"))
+        if file_footer:
+            return file_footer
+    except Exception:
+        pass
+    return DEFAULT_FOOTER
+
+
+def _mode_marker(mode: str, footer: str | None = None) -> str:
+    state = footer or _footer_setting()
+    suffix = "" if state == "on" else f" · footer: {state}"
+    return f"PONYTAIL MODE ACTIVE — level: {mode}{suffix}"
 
 
 def _strip_frontmatter(text: str) -> str:
@@ -115,19 +153,23 @@ def build_injected_context(mode: str | None = None) -> str:
     configured = _normalize_config_mode(mode) or _default_mode()
     if configured == "off":
         return ""
+    footer = _footer_setting()
     if configured == "review":
         try:
             body = REVIEW_SKILL.read_text(encoding="utf-8")
-            return f"PONYTAIL MODE ACTIVE — level: review\n\n{_strip_frontmatter(body)}"
+            return f"{_mode_marker('review', footer)}\n\n{_strip_frontmatter(body)}"
         except OSError:
-            return "PONYTAIL MODE ACTIVE — level: review. Review the diff for bugs, risks, load, missing tests, speed and bloat; explain each finding in plain English."
+            return f"{_mode_marker('review', footer)}. Review the diff for bugs, risks, load, missing tests, speed and bloat; explain each finding in plain English."
 
     effective = _normalize_runtime_mode(configured) or DEFAULT_MODE
     try:
         body = PONYTAIL_SKILL.read_text(encoding="utf-8")
-        return f"PONYTAIL MODE ACTIVE — level: {effective}\n\n{_filter_skill_body_for_mode(body, effective)}"
+        text = _filter_skill_body_for_mode(body, effective)
     except OSError:
         return _fallback_instructions(effective)
+    if footer == "off":
+        text = text.replace(f" {FOOTER_SENTENCE}", "")
+    return f"{_mode_marker(effective, footer)}\n\n{text}"
 
 
 def _pre_llm_call(
@@ -139,17 +181,21 @@ def _pre_llm_call(
         return None
 
     # Hermes persists hook context in api_content for cache-stable replay.
-    # Re-inject only when the active mode changed or compaction removed it.
+    # Re-inject only when the active mode or the footer state changed, or compaction removed it.
     marker = "PONYTAIL MODE ACTIVE — level: "
+    expected = (mode, _footer_setting())
     for message in reversed(conversation_history or []):
         if not isinstance(message, dict):
             continue
         api_content = message.get("api_content")
         if not isinstance(api_content, str):
             continue
-        matches = re.findall(rf"{re.escape(marker)}([a-z]+)", api_content)
+        matches = re.findall(
+            rf"{re.escape(marker)}([a-z]+)(?: · footer: (off))?", api_content
+        )
         if matches:
-            return None if matches[-1] == mode else {"context": context}
+            last = matches[-1]
+            return None if (last[0], last[1] or DEFAULT_FOOTER) == expected else {"context": context}
 
     return {"context": context}
 
