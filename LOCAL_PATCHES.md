@@ -6,6 +6,7 @@
 - `upstream` = `DietrichGebert/ponytail`：只作只读参考，不再跟版、不往上推
 - 基线：上游 `9cc65d0`（v5.1.0，含 neutral `shortcut:` 标记）＋本文件的改动
 - 维护口径：改动直接落 `main` 并推 `origin`；本文件从"补丁 vs 上游"转为**改动日志**（下面各节按时间倒序保留历史）
+- 版本口径（2026-10-09 用户定）：**5.1.0 就是本仓的第一个维护版**，后续迭代在这个版本基础上于本仓进行
 - 生效状态：SKILL.md 现读即生效；`__init__.py` 随 v5.1.0 只改了 `ponytail-debt` 的命令描述串，**待下次 gateway 重启生效**
 
 ## ~~__init__.py — PR #787 (fix(hermes): avoid repeated context injection)~~ 已销项（2026-10-04 上游合并）
