@@ -7,20 +7,27 @@
 - 基线：上游 `9cc65d0`（v5.1.0，含 neutral `shortcut:` 标记）＋本文件的改动
 - 维护口径：改动直接落 `main` 并推 `origin`；本文件从"补丁 vs 上游"转为**改动日志**（下面各节按时间倒序保留历史）
 - 版本口径（2026-10-09 用户定）：**5.1.0 就是本仓的第一个维护版**，后续迭代在这个版本基础上于本仓进行
-- 生效状态：SKILL.md 现读即生效；`__init__.py` 随 v5.1.0 只改了 `ponytail-debt` 的命令描述串，**待下次 gateway 重启生效**
+- 生效状态（2026-10-10 起）：skill 与命令注册随 gateway 重启进运行进程；`skills/*/SKILL.md` 由使用方按需加载。
 
-## 作用域收窄 + 收尾句摘除（2026-10-10，本地决策）
+## 注入机制摘除（2026-10-10，本地决策）
 
-- 需求（用户定）：Ponytail 不再干预日常会话——它只该管编码/构建，不该管我怎么对话。
+- 需求（用户定）：Ponytail 不出现在日常会话里——「把这一块直接摘除掉」。同一个需求分两轮落地：先摘收尾句，同日再摘整条注入。
 - 改动面：
-  - `skills/ponytail/SKILL.md` 描述：删掉 `and a reply a busy human understands in one read`，补回 `Do not use for non-coding requests (conversation, questions, prose, reports, summaries)`（上游 v5.0 把这两处一并删了）。
-  - `skills/ponytail/SKILL.md` 正文：删掉收尾句 `End your reply with one or two lines…`；`Active for the whole session…` 换成 `Scope: coding and build work only — conversation, questions, explanations and reports run on the host's own rules.`
-  - `__init__.py`：摘除页脚开关全部机件（`DEFAULT_FOOTER` / `FOOTER_MODES` / `FOOTER_SENTENCE` / `_normalize_footer` / `_footer_setting` / marker 后缀），去重守卫回到只比档位；`_fallback_instructions` 同步作用域句。
-  - `README.md`：页脚开关段替换为作用域说明；"Active every session" → "Active for coding work in every session"。
-  - `AGENTS.md` 与 `skills/ponytail-help/SKILL.md`：删掉收尾句本身，以及 "a reply that names what was skipped and any risk" 这类表述。`AGENTS.md` 是同一句在 Hermes 里的最后一个载体——在该目录工作时会被当作 subdirectory context 读入。
-- 依据：上游 #978（all-caps 使规则外溢到 prose / reports / 非编码轮次，维护者回"正在做，ready 就落地"→ 即 v5.0 重写）与 #595（always-on 规则每条每次都要付费，拒绝加规则）；上游 v5.0 删掉了 `Boundaries`（"governs what you build, not how you talk"）与描述里的 non-coding 排除，本仓按用户口径把作用域显式写回。
-- 验收：`verify_ponytail_patches.py` 全过（收尾句缺席 / 作用域在场 / 页脚机件已摘除 / 旧 footer 键惰性 / 守卫只比档位 / 收尾句不在 AGENTS.md·README·各命令 skill 等现行载体）+ `py_compile`；注入体积 `inspect_ponytail_injection.py` 实读 lite 2511 / full 2456 / ultra 2525 / review 4754（改前 lite 2523 / full 2468 / ultra 2537）。
-- 生效路径：SKILL.md 现读 → **下次注入即生效**（本会话已注入过，需模式变更/压缩/新会话）；`__init__.py` 的机件摘除随 gateway 重启进运行进程，其间旧代码路径无害（句子已不在文案里，替换为空操作）。
+  - `__init__.py`：删掉整条注入路径——档位常量与归一化、`_config_dir` / `_default_mode`、`_mode_marker`、`_strip_frontmatter`、`_filter_skill_body_for_mode`、`_fallback_instructions`、`build_injected_context`、`_pre_llm_call` 及 `pre_llm_call` 钩子注册、`/ponytail` 档位命令；`register()` 只做 skill 注册 + `pre_gateway_dispatch` + 五个命令。
+  - `plugin.yaml`：`provides_hooks` 只余 `pre_gateway_dispatch`；`provides_commands` 去掉 `ponytail`；描述改为按需加载。
+  - `skills/ponytail/SKILL.md`：删档位表、`argument-hint`、`Levels:` 描述、`Switch level` 句；保留规则本体、作用域行与 "stop ponytail" 退出语。
+  - `skills/ponytail-help/SKILL.md`：整卡重写为技能表 + 调用方式。
+  - `skills/ponytail-gain/SKILL.md`、`skills/ponytail-debt/SKILL.md`：删档位/模式表述。
+  - `README.md`：删档位、配置面、收尾句与「每会话激活」描述；命令表去掉 `/ponytail` 行。
+- 保留交付面：`ponytail` skill 本体 + 五个命令（review / audit / debt / gain / help）。
+- 生效路径：钩子注册随 gateway 重启进运行进程；已注入过旧块的会话在压缩或新会话前持有旧文案。
+- 验证：`verify_ponytail_patches.py`（规则在场 / 三处删除串缺席 / 无注入机件 / 注册面完整 / 命令改写）+ `py_compile` + stub ctx 上真跑 `register()`。
+- 版本：维持 5.1.0（本仓维护版号，与前两次迭代同口径）。
+
+## ~~作用域收窄 + 收尾句摘除（2026-10-10）~~ 已被同日的「注入机制摘除」取代
+
+- 当时做法：正文补作用域行 `Scope: coding and build work only…`；收尾句及其 `PONYTAIL_FOOTER` / `footer` 开关整体摘除；描述补回 non-coding 排除。
+- 留存：作用域行与描述里的 non-coding 排除仍在 `skills/ponytail/SKILL.md`。
 
 ## ~~__init__.py — PR #787 (fix(hermes): avoid repeated context injection)~~ 已销项（2026-10-04 上游合并）
 

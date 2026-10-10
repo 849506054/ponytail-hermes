@@ -8,8 +8,8 @@ description: >
 
 # Ponytail Gain
 
-Display this scoreboard when invoked. One-shot: do NOT change mode, write flag
-files, or persist anything.
+Display this scoreboard when invoked. One-shot: display only, write no flag
+files, persist nothing.
 
 The figures are the published agentic benchmark of Ponytail 5: headless Claude
 Code (Opus 5.5, default effort) on 39 tasks (feature tickets in a real FastAPI +
@@ -49,5 +49,4 @@ this card points there instead of inventing one.
 
 ## Boundaries
 
-One-shot display. Edits nothing, changes no mode.
-"stop ponytail" or "normal mode": revert.
+One-shot display. Edits nothing.

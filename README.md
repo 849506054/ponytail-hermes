@@ -115,11 +115,11 @@ The ladder runs *after* it understands the problem, not instead of it: it reads 
 
 Lazy, not negligent: trust-boundary validation, data-loss handling, security, and accessibility are never on the chopping block.
 
-Logic with a branch, a loop, a parser, money or security leaves one small test behind. Every reply ends with what was skipped or not checked and any risk you should know.
+Logic with a branch, a loop, a parser, money or security leaves one small test behind.
 
 ## The prompt
 
-Ponytail is one prompt: [`skills/ponytail/SKILL.md`](skills/ponytail/SKILL.md). This fork ships it for Hermes Agent only: the injected prompt, the six skills and the six slash commands, nothing else.
+Ponytail is one prompt: [`skills/ponytail/SKILL.md`](skills/ponytail/SKILL.md). This fork ships it for Hermes Agent only: the prompt, the six skills and the five slash commands, nothing else.
 
 ## Install
 
@@ -127,11 +127,9 @@ Ponytail is one prompt: [`skills/ponytail/SKILL.md`](skills/ponytail/SKILL.md). 
 hermes plugins install 849506054/ponytail-hermes
 ```
 
-The prompt governs coding and build work only: conversation, questions and reports run on Hermes' own rules, so there is no closing line to switch off.
-
 That was it. He'd be proud. He won't say it.
 
-Active for coding work in every session, with a handful of commands (see [Commands](#commands)). `/ponytail ultra` exists for when the codebase has wronged you personally. Startup and mode-change text shows the current mode.
+Ponytail loads for coding work when the task calls for it, and ships a handful of commands (see [Commands](#commands)) for the rest. `/ponytail-review` on a diff, `/ponytail-audit` on the repo.
 
 This fork is a Python plugin plus one prompt. It ships no `.exe`, no `.dll` and no npm package.
 
@@ -139,7 +137,6 @@ This fork is a Python plugin plus one prompt. It ships no `.exe`, no `.dll` and 
 
 | Command | What it does |
 |---------|--------------|
-| `/ponytail [lite \| full \| ultra \| off]` | Set the intensity, or turn it off. No argument switches ponytail on at the default level if it is off, and otherwise reports the current level. |
 | `/ponytail-review` | Review the current diff like the senior dev who gets paged when it breaks: bugs, security, real load, risky code without a test, slow paths, and what to cut. Each finding says what the code does, what goes wrong, how to fix it, and what happens if you don't. Name a target in plain words to narrow or widen it: `uncommitted`, `staged`, `branch`, or a PR link. |
 | `/ponytail-audit` | The same check for the whole repo, most important first. |
 | `/ponytail-debt` | Harvest the `shortcut:` comments you've deferred into a ledger, so "later" doesn't become "never". |
@@ -151,10 +148,10 @@ Commands are registered by the Hermes plugin, and the five command skills ship i
 ## FAQ
 
 **Does it need a config file?**
-No. An optional `~/.config/ponytail/config.json` or `PONYTAIL_DEFAULT_MODE` env var can set the default level, but nothing is required.
+No. There is no config file and no environment variable. Ponytail runs on the installed plugin plus the prompt.
 
 **Why does it write `shortcut:` comments?**
-They mark a deliberate shortcut and when to revisit it, and `/ponytail-debt` collects them into a ledger. Want another word, or none? Say so in your project's `CLAUDE.md` or `AGENTS.md`, then run `/ponytail-debt <your word>`.
+They mark a deliberate shortcut and when to revisit it, and `/ponytail-debt` collects them into a ledger. Want another word, or none? Say so in your project's `AGENTS.md`, then run `/ponytail-debt <your word>`.
 
 **What if I really need the 120-line cache class?**
 You don't. Insist anyway and he'll build it. Slowly. Correctly. While looking at you.

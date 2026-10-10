@@ -2,15 +2,9 @@
 
 from __future__ import annotations
 
-import json
-import os
-import re
 from pathlib import Path
 from typing import Any, Callable
 
-DEFAULT_MODE = "full"
-RUNTIME_MODES = {"off", "lite", "full", "ultra"}
-CONFIG_MODES = RUNTIME_MODES | {"review"}
 SKILL_COMMANDS = {
     "ponytail-review": "Review the current diff or provided target: bugs, security, load, missing tests, speed, and what to cut.",
     "ponytail-audit": "Audit the whole repo: bugs, security, load, missing tests, speed, and what to cut.",
@@ -21,143 +15,6 @@ SKILL_COMMANDS = {
 
 ROOT = Path(__file__).resolve().parent
 SKILLS_DIR = ROOT / "skills"
-PONYTAIL_SKILL = SKILLS_DIR / "ponytail" / "SKILL.md"
-REVIEW_SKILL = SKILLS_DIR / "ponytail-review" / "SKILL.md"
-
-_current_mode = None
-
-
-def _normalize_runtime_mode(mode: str | None) -> str | None:
-    if not isinstance(mode, str):
-        return None
-    mode = mode.strip().lower()
-    return mode if mode in RUNTIME_MODES else None
-
-
-def _normalize_config_mode(mode: str | None) -> str | None:
-    if not isinstance(mode, str):
-        return None
-    mode = mode.strip().lower()
-    return mode if mode in CONFIG_MODES else None
-
-
-def _config_dir() -> Path:
-    if os.environ.get("XDG_CONFIG_HOME"):
-        return Path(os.environ["XDG_CONFIG_HOME"]) / "ponytail"
-    if os.name == "nt":
-        return Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming")) / "ponytail"
-    return Path.home() / ".config" / "ponytail"
-
-
-def _default_mode() -> str:
-    env_mode = _normalize_runtime_mode(os.environ.get("PONYTAIL_DEFAULT_MODE"))
-    if env_mode:
-        return env_mode
-    try:
-        data = json.loads((_config_dir() / "config.json").read_text(encoding="utf-8-sig"))
-        file_mode = _normalize_runtime_mode(data.get("defaultMode"))
-        if file_mode:
-            return file_mode
-    except Exception:
-        pass
-    return DEFAULT_MODE
-
-
-def _mode_marker(mode: str) -> str:
-    return f"PONYTAIL MODE ACTIVE — level: {mode}"
-
-
-def _strip_frontmatter(text: str) -> str:
-    return re.sub(r"^---[\s\S]*?---\s*", "", text or "", count=1)
-
-
-def _filter_skill_body_for_mode(body: str, mode: str) -> str:
-    effective = _normalize_runtime_mode(mode) or DEFAULT_MODE
-    lines = []
-    # str.splitlines() drops a trailing line terminator instead of yielding a
-    # trailing empty element, so a body ending in "\n" loses that newline on
-    # rejoin. re.split keeps it, matching the JS filter's split(/\r?\n/).
-    for line in re.split(r"\r?\n", _strip_frontmatter(body)):
-        table_label = re.match(r"^\|\s*\*\*(.+?)\*\*\s*\|", line)
-        if table_label:
-            label_mode = _normalize_runtime_mode(table_label.group(1))
-            if label_mode and label_mode != effective:
-                continue
-
-        # Require a quoted value: every worked example is `- lite: "..."`. Without
-        # this, an ordinary rule bullet that happens to start with a mode word
-        # (e.g. "- Full: ...") is silently dropped in every other mode — it looks
-        # like a worked example but is really prose meant to survive verbatim.
-        # Mirrors the mode-filter fix from #571.
-        example_label = re.match(r'^-\s*([^:]+):\s*"', line)
-        if example_label:
-            label_mode = _normalize_runtime_mode(example_label.group(1))
-            if label_mode and label_mode != effective:
-                continue
-
-        lines.append(line)
-    return "\n".join(lines)
-
-
-def _fallback_instructions(mode: str) -> str:
-    return (
-        f"PONYTAIL MODE ACTIVE — level: {mode}\n\n"
-        "You are a lazy senior developer. The best code is the code never written. "
-        "Scope: coding and build work only. "
-        "Before you write, list every place your change must reach (callers, tests, "
-        "fixtures) and what it could break for users. First rung that works: skip what "
-        "is not needed, reuse what the codebase has, stdlib or platform, installed "
-        "dependency, one readable line, then minimum code. No unrequested abstractions, "
-        "wrappers, options or boilerplate. Never cut trust-boundary validation, "
-        "data-loss handling, security, accessibility or anything asked for. "
-        "When the same targeted patch fails 3 times in a row, stop micro-patching "
-        "and rewrite that block in one change."
-    )
-
-
-def build_injected_context(mode: str | None = None) -> str:
-    """Return the mode-filtered Ponytail context injected before LLM turns."""
-    configured = _normalize_config_mode(mode) or _default_mode()
-    if configured == "off":
-        return ""
-    if configured == "review":
-        try:
-            body = REVIEW_SKILL.read_text(encoding="utf-8")
-            return f"{_mode_marker('review')}\n\n{_strip_frontmatter(body)}"
-        except OSError:
-            return f"{_mode_marker('review')}. Review the diff for bugs, risks, load, missing tests, speed and bloat; explain each finding in plain English."
-
-    effective = _normalize_runtime_mode(configured) or DEFAULT_MODE
-    try:
-        body = PONYTAIL_SKILL.read_text(encoding="utf-8")
-        text = _filter_skill_body_for_mode(body, effective)
-    except OSError:
-        return _fallback_instructions(effective)
-    return f"{_mode_marker(effective)}\n\n{text}"
-
-
-def _pre_llm_call(
-    session_id: str = "", conversation_history: Any = None, **_: Any
-) -> dict[str, str] | None:
-    mode = _current_mode or _default_mode()
-    context = build_injected_context(mode)
-    if not context:
-        return None
-
-    # Hermes persists hook context in api_content for cache-stable replay.
-    # Re-inject only when the active mode changed, or compaction removed it.
-    marker = "PONYTAIL MODE ACTIVE — level: "
-    for message in reversed(conversation_history or []):
-        if not isinstance(message, dict):
-            continue
-        api_content = message.get("api_content")
-        if not isinstance(api_content, str):
-            continue
-        matches = re.findall(rf"{re.escape(marker)}([a-z]+)", api_content)
-        if matches:
-            return None if matches[-1] == mode else {"context": context}
-
-    return {"context": context}
 
 
 def _skill_prompt(command: str, args: str = "") -> str:
@@ -196,23 +53,6 @@ def rewrite_gateway_command(event: Any = None, gateway: Any = None, **_: Any) ->
     return {"action": "rewrite", "text": _skill_prompt(command, rest)}
 
 
-def _handle_mode_command(raw_args: str) -> str:
-    global _current_mode
-    arg = (raw_args or "").strip().lower()
-    if not arg:
-        # Bare /ponytail switches ponytail on, or reports the level when it already is (#639).
-        mode = _current_mode or _default_mode()
-        if mode != "off":
-            return f"Ponytail mode: {mode}. Use `/ponytail lite|full|ultra|off`."
-        _current_mode = "full" if _default_mode() == "off" else _default_mode()
-        return f"Ponytail mode set to {_current_mode}."
-    mode = _normalize_runtime_mode(arg)
-    if not mode:
-        return "Usage: /ponytail [lite|full|ultra|off]"
-    _current_mode = mode
-    return f"Ponytail mode set to {mode}."
-
-
 def _make_skill_command_handler(ctx: Any, command: str) -> Callable[[str], str]:
     def handler(raw_args: str) -> str:
         prompt = _skill_prompt(command, raw_args or "")
@@ -229,21 +69,14 @@ def _make_skill_command_handler(ctx: Any, command: str) -> Callable[[str], str]:
 
 
 def register(ctx: Any) -> None:
-    """Register Ponytail hooks, skills, and slash commands with Hermes."""
+    """Register Ponytail skills and slash commands with Hermes."""
     for child in sorted(SKILLS_DIR.iterdir() if SKILLS_DIR.exists() else []):
         skill_md = child / "SKILL.md"
         if child.is_dir() and skill_md.exists():
             ctx.register_skill(child.name, skill_md)
 
-    ctx.register_hook("pre_llm_call", _pre_llm_call)
     ctx.register_hook("pre_gateway_dispatch", rewrite_gateway_command)
 
-    ctx.register_command(
-        "ponytail",
-        _handle_mode_command,
-        description="Set Ponytail lazy senior dev mode: lite, full, ultra, or off.",
-        args_hint="[lite|full|ultra|off]",
-    )
     for command, description in SKILL_COMMANDS.items():
         ctx.register_command(
             command,
