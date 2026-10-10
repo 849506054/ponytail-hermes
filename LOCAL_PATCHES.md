@@ -17,8 +17,9 @@
   - `skills/ponytail/SKILL.md` 正文：删掉收尾句 `End your reply with one or two lines…`；`Active for the whole session…` 换成 `Scope: coding and build work only — conversation, questions, explanations and reports run on the host's own rules.`
   - `__init__.py`：摘除页脚开关全部机件（`DEFAULT_FOOTER` / `FOOTER_MODES` / `FOOTER_SENTENCE` / `_normalize_footer` / `_footer_setting` / marker 后缀），去重守卫回到只比档位；`_fallback_instructions` 同步作用域句。
   - `README.md`：页脚开关段替换为作用域说明；"Active every session" → "Active for coding work in every session"。
+  - `AGENTS.md` 与 `skills/ponytail-help/SKILL.md`：删掉收尾句本身，以及 "a reply that names what was skipped and any risk" 这类表述。`AGENTS.md` 是同一句在 Hermes 里的最后一个载体——在该目录工作时会被当作 subdirectory context 读入。
 - 依据：上游 #978（all-caps 使规则外溢到 prose / reports / 非编码轮次，维护者回"正在做，ready 就落地"→ 即 v5.0 重写）与 #595（always-on 规则每条每次都要付费，拒绝加规则）；上游 v5.0 删掉了 `Boundaries`（"governs what you build, not how you talk"）与描述里的 non-coding 排除，本仓按用户口径把作用域显式写回。
-- 验收：`verify_ponytail_patches.py` 全过（收尾句缺席 / 作用域在场 / 页脚机件已摘除 / 旧 footer 键惰性 / 守卫只比档位）+ `py_compile`；注入体积 `inspect_ponytail_injection.py` 实读 lite 2511 / full 2456 / ultra 2525 / review 4754（改前 lite 2523 / full 2468 / ultra 2537）。
+- 验收：`verify_ponytail_patches.py` 全过（收尾句缺席 / 作用域在场 / 页脚机件已摘除 / 旧 footer 键惰性 / 守卫只比档位 / 收尾句不在 AGENTS.md·README·各命令 skill 等现行载体）+ `py_compile`；注入体积 `inspect_ponytail_injection.py` 实读 lite 2511 / full 2456 / ultra 2525 / review 4754（改前 lite 2523 / full 2468 / ultra 2537）。
 - 生效路径：SKILL.md 现读 → **下次注入即生效**（本会话已注入过，需模式变更/压缩/新会话）；`__init__.py` 的机件摘除随 gateway 重启进运行进程，其间旧代码路径无害（句子已不在文案里，替换为空操作）。
 
 ## ~~__init__.py — PR #787 (fix(hermes): avoid repeated context injection)~~ 已销项（2026-10-04 上游合并）
