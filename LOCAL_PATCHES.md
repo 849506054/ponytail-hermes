@@ -145,12 +145,8 @@
 - 验证：`verify_ponytail_patches.py` PASS；`inspect_ponytail_injection.py` 逐档体积不变（full 2468 / lite 2523 / ultra 2537）；py_compile OK；`hermes plugins list`（新进程）读到 ponytail **enabled / 5.1.0**，六个命令与四档注册完整。
 - 备份：`/opt/data/backups/ponytail-hermes-20261009-client-adapters.tar.gz`（135 条目；git 历史同样可回溯）。
 
-## 页脚显示开关（2026-10-09，本地新增）
+## ~~页脚显示开关（2026-10-09，本地新增）~~ 已撤销（2026-10-10）
 
-- 需求：收尾那句「what you skipped or did not check」可关，**默认显示**。
-- 实现：`__init__.py` 新增 `FOOTER_SENTENCE` / `DEFAULT_FOOTER` / `FOOTER_MODES` / `_normalize_footer` / `_footer_setting` / `_mode_marker`；`build_injected_context` 在关页脚时从注入文本删掉该句，并让 marker 带 ` · footer: off`；`_pre_llm_call` 的去重守卫改比对 **(档位, 页脚状态)** 二元组，使开关切换能触发一次重注入。
-- 开关口径（先 env 后文件）：`PONYTAIL_FOOTER=off`（进程 env，改后需重启 gateway）；或 `~/.config/ponytail/config.json` 的 `"footer": "off"`（网关 `HOME=/opt/data` → `/opt/data/.config/ponytail/config.json`；**每次注入现读，免重启即生效**）。取值 `on/off/1/0/true/false/yes/no`，未知值回落默认 `on`。
-- 效果：full 档 **2468 → 2376** 字符（关页脚 −92）；阶梯、Never cut、档位表不受影响。
-- 验证：`verify_ponytail_patches.py` PASS（新增页脚断言：默认开、关后句子缺席 / marker 带后缀 / 正文完好、开关切换双向各触发一次重注入）+ py_compile OK。
-- 生效状态：代码改动需 **gateway 重启** 才进运行进程；重启后 `config.json` 的切换即时生效。
+- 当时做法：`__init__.py` 加 `FOOTER_SENTENCE` 与 `PONYTAIL_FOOTER` / `config.json` 的 `footer` 开关，去重守卫改比 (档位, 页脚状态)。
+- 撤销：收尾句本身就是"管我怎么说话"的规则，按用户口径连句子与开关一并摘除（见本文件「作用域收窄 + 收尾句摘除」节）；该开关在本机只用过默认态，无外部依赖。
 
