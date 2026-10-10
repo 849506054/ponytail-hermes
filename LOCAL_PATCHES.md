@@ -9,6 +9,18 @@
 - 版本口径（2026-10-09 用户定）：**5.1.0 就是本仓的第一个维护版**，后续迭代在这个版本基础上于本仓进行
 - 生效状态：SKILL.md 现读即生效；`__init__.py` 随 v5.1.0 只改了 `ponytail-debt` 的命令描述串，**待下次 gateway 重启生效**
 
+## 作用域收窄 + 收尾句摘除（2026-10-10，本地决策）
+
+- 需求（用户定）：Ponytail 不再干预日常会话——它只该管编码/构建，不该管我怎么对话。
+- 改动面：
+  - `skills/ponytail/SKILL.md` 描述：删掉 `and a reply a busy human understands in one read`，补回 `Do not use for non-coding requests (conversation, questions, prose, reports, summaries)`（上游 v5.0 把这两处一并删了）。
+  - `skills/ponytail/SKILL.md` 正文：删掉收尾句 `End your reply with one or two lines…`；`Active for the whole session…` 换成 `Scope: coding and build work only — conversation, questions, explanations and reports run on the host's own rules.`
+  - `__init__.py`：摘除页脚开关全部机件（`DEFAULT_FOOTER` / `FOOTER_MODES` / `FOOTER_SENTENCE` / `_normalize_footer` / `_footer_setting` / marker 后缀），去重守卫回到只比档位；`_fallback_instructions` 同步作用域句。
+  - `README.md`：页脚开关段替换为作用域说明；"Active every session" → "Active for coding work in every session"。
+- 依据：上游 #978（all-caps 使规则外溢到 prose / reports / 非编码轮次，维护者回"正在做，ready 就落地"→ 即 v5.0 重写）与 #595（always-on 规则每条每次都要付费，拒绝加规则）；上游 v5.0 删掉了 `Boundaries`（"governs what you build, not how you talk"）与描述里的 non-coding 排除，本仓按用户口径把作用域显式写回。
+- 验收：`verify_ponytail_patches.py` 全过（收尾句缺席 / 作用域在场 / 页脚机件已摘除 / 旧 footer 键惰性 / 守卫只比档位）+ `py_compile`；注入体积 `inspect_ponytail_injection.py` 实读 lite 2511 / full 2456 / ultra 2525 / review 4754（改前 lite 2523 / full 2468 / ultra 2537）。
+- 生效路径：SKILL.md 现读 → **下次注入即生效**（本会话已注入过，需模式变更/压缩/新会话）；`__init__.py` 的机件摘除随 gateway 重启进运行进程，其间旧代码路径无害（句子已不在文案里，替换为空操作）。
+
 ## ~~__init__.py — PR #787 (fix(hermes): avoid repeated context injection)~~ 已销项（2026-10-04 上游合并）
 
 - **状态：已上游化**。PR #787 merged（merge commit `9410bcb`），随 v4.10.3 发布；升级后 `git pull` 吸收，本地 #787 diff 丢弃。工作树中 `_pre_llm_call` 的去重守卫（api_content marker 检查）现全部来自上游。

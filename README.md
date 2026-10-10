@@ -127,11 +127,11 @@ Ponytail is one prompt: [`skills/ponytail/SKILL.md`](skills/ponytail/SKILL.md). 
 hermes plugins install 849506054/ponytail-hermes
 ```
 
-The closing line ("what you skipped or did not check") shows by default. Turn it off with `PONYTAIL_FOOTER=off` in the gateway environment, or `"footer": "off"` in `~/.config/ponytail/config.json` (read on every injection).
+The prompt governs coding and build work only: conversation, questions and reports run on Hermes' own rules, so there is no closing line to switch off.
 
 That was it. He'd be proud. He won't say it.
 
-Active every session, with a handful of commands (see [Commands](#commands)). `/ponytail ultra` exists for when the codebase has wronged you personally. Startup and mode-change text shows the current mode.
+Active for coding work in every session, with a handful of commands (see [Commands](#commands)). `/ponytail ultra` exists for when the codebase has wronged you personally. Startup and mode-change text shows the current mode.
 
 This fork is a Python plugin plus one prompt. It ships no `.exe`, no `.dll` and no npm package.
 
